@@ -1,98 +1,157 @@
 # Danooc
 
-Red neuronal convolucional (CNN) para clasificación de imágenes, construida con **PyTorch**.
-
-El modelo — **DanoocNet** — se entrena sobre el dataset [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) y aprende a reconocer 10 categorías:
-
-> airplane · automobile · bird · cat · deer · dog · frog · horse · ship · truck
+IA para call center tipo IVR ("presione 1 para ventas...") con clasificador de intenciones entrenable y servidor compatible con Twilio.
 
 ---
+
+## Qué hace
+
+- **IVR inteligente**: menú de opciones por teclado (DTMF) **y** por voz con IA
+- **Clasificador de intenciones**: modelo de NLP entrenable que entiende lenguaje natural en español
+- **Flujo de llamada configurable**: define menús, submenús, transferencias, buzón de voz — todo en un JSON
+- **Servidor Twilio-ready**: webhooks FastAPI que generan TwiML para integrar con Twilio
+- **Simulador de terminal**: prueba el sistema completo sin necesidad de teléfono
 
 ## Estructura del proyecto
 
 ```
 danooc/
-├── __init__.py        # Exportaciones del paquete
-├── config.py          # Hiperparámetros y configuración
-├── model.py           # Arquitectura de DanoocNet (CNN)
-├── dataset.py         # Carga de CIFAR-10 con augmentación
-├── trainer.py         # Bucle de entrenamiento y evaluación
-└── predict.py         # Inferencia sobre una imagen individual
+├── ivr/
+│   ├── engine.py      # Motor de flujo de llamada (máquina de estados)
+│   └── models.py      # Modelos: MenuNode, ActionNode, CallFlow
+├── nlp/
+│   ├── classifier.py  # Clasificador de intenciones (TF-IDF + nearest centroid)
+│   └── preprocessing.py  # Preprocesamiento de texto español
+├── tts/
+│   └── responses.py   # Generador de TwiML (Text-to-Speech)
+├── api/
+│   └── server.py      # Servidor FastAPI con webhooks para Twilio
+└── config.py          # Configuración global
+
+data/
+├── call_flow.json     # Definición del flujo de llamada
+└── training_data.json # Datos de entrenamiento para el clasificador
+
 scripts/
-├── train.py           # Script para entrenar el modelo
-├── evaluate.py        # Script para evaluar un checkpoint
-└── predict.py         # Script para clasificar una imagen
+├── train.py           # Entrenar el modelo de intenciones
+├── serve.py           # Iniciar el servidor API
+└── simulate.py        # Simulador interactivo de llamadas
 ```
 
-## Requisitos
-
-- Python 3.10+
-- PyTorch 2.0+
+## Instalación
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Entrenamiento
+## Uso rápido
 
-Entrena el modelo con los parámetros por defecto (20 épocas, batch size 64):
+### 1. Entrenar la IA
 
 ```bash
 python scripts/train.py
 ```
 
-Personaliza los hiperparámetros:
-
-```bash
-python scripts/train.py --epochs 30 --batch-size 128 --lr 0.0005
+Salida esperada:
+```
+Training data: 97 examples
+Intents:        6
+Vocabulary:     143 words
+Train accuracy: 100.0%
+Model saved to: data/intent_model.json
 ```
 
-El dataset CIFAR-10 se descarga automáticamente en `./data/`. Los checkpoints se guardan en `./checkpoints/`.
-
-## Evaluación
-
-Evalúa el mejor modelo guardado sobre el set de pruebas:
+### 2. Probar con el simulador
 
 ```bash
-python scripts/evaluate.py
-python scripts/evaluate.py --checkpoint last.pt
+python scripts/simulate.py
 ```
 
-## Predicción
+Ejemplo de sesión:
+```
+📞 Sistema: Bienvenido a Danooc. Gracias por llamarnos.
+   Presione 1 para ventas. Presione 2 para soporte técnico...
 
-Clasifica cualquier imagen:
+Tú: 1
+📞 Sistema: Ha seleccionado ventas. Presione 1 para información de productos...
+
+Tú: necesito una cotización
+  [NLP] intent=ventas, confianza=85%
+📞 Sistema: Para solicitar una cotización, deje su mensaje...
+```
+
+### 3. Iniciar el servidor (para Twilio)
 
 ```bash
-python scripts/predict.py ruta/a/imagen.png
+python scripts/serve.py --port 8000
 ```
 
-## Arquitectura del modelo
+## Intenciones incluidas
 
-DanoocNet usa tres bloques convolucionales seguidos de un clasificador fully-connected:
-
-| Capa | Salida |
+| Intent | Ejemplos |
 |---|---|
-| Conv2d(3→32) + BN + ReLU + MaxPool | 16×16×32 |
-| Conv2d(32→64) + BN + ReLU + MaxPool | 8×8×64 |
-| Conv2d(64→128) + BN + ReLU + MaxPool | 4×4×128 |
-| Flatten + Linear(2048→256) + ReLU + Dropout | 256 |
-| Linear(256→10) | 10 |
+| `ventas` | "quiero comprar", "cotización", "precios" |
+| `soporte` | "tengo un problema", "no funciona", "falla" |
+| `facturacion` | "necesito mi factura", "cuánto debo", "pagar" |
+| `cancelacion` | "quiero cancelar", "dar de baja" |
+| `agente` | "hablar con alguien", "operador" |
+| `horarios` | "a qué hora abren", "horarios de atención" |
 
-Total de parámetros: ~581K
+## Flujo de llamada
 
-## Uso como librería
-
-```python
-from danooc import DanoocNet, get_dataloaders, Trainer
-from danooc.config import Config
-
-config = Config(epochs=10, learning_rate=0.001)
-train_loader, test_loader = get_dataloaders(batch_size=config.batch_size)
-
-model = DanoocNet(num_classes=10)
-trainer = Trainer(model, config)
-history = trainer.train(train_loader, test_loader)
 ```
+Llamada entrante
+  └─ Menú principal
+       ├─ 1: Ventas
+       │    ├─ 1: Info productos
+       │    ├─ 2: Cotización (buzón de voz)
+       │    └─ 0: Transferir a ventas
+       ├─ 2: Soporte
+       │    ├─ 1: Reportar falla (buzón de voz)
+       │    ├─ 2: Estado de ticket → transferir
+       │    └─ 0: Transferir a técnico
+       ├─ 3: Facturación
+       │    ├─ 1: Consultar saldo → transferir
+       │    ├─ 2: Solicitar factura → transferir
+       │    └─ 0: Transferir a facturación
+       ├─ 4: Cancelaciones
+       │    ├─ 1: Agente de retención
+       │    ├─ 2: Continuar cancelación
+       │    └─ 9: Volver al menú
+       ├─ 5: Horarios → info y colgar
+       └─ 0: Hablar con agente → transferir
+```
+
+## Personalización
+
+### Agregar intenciones nuevas
+
+Edita `data/training_data.json` y agrega ejemplos:
+
+```json
+{"text": "quiero cambiar mi plan", "intent": "cambio_plan"}
+```
+
+Luego re-entrena: `python scripts/train.py`
+
+### Modificar el flujo de llamada
+
+Edita `data/call_flow.json` para agregar menús, cambiar prompts o agregar nuevos destinos de transferencia.
+
+### Integración con Twilio
+
+1. Inicia el servidor: `python scripts/serve.py --base-url https://tu-dominio.com`
+2. En Twilio, configura el webhook de llamadas entrantes a: `https://tu-dominio.com/voice/incoming`
+
+## API Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/voice/incoming` | Llamada entrante (webhook de Twilio) |
+| POST | `/voice/handle-input` | Recibe DTMF o voz tras un Gather |
+| POST | `/voice/no-input` | Timeout sin respuesta |
+| POST | `/voice/voicemail` | Recibe grabación de buzón de voz |
+| GET | `/health` | Health check |
 
 ## Licencia
 

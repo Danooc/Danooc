@@ -1,34 +1,42 @@
 """
-Hyperparameters and project-wide configuration.
+Global configuration for the Danooc call center system.
 """
+from __future__ import annotations
+
+import json
 from dataclasses import dataclass, field
-from typing import List
+from pathlib import Path
+from typing import Any
 
 
 @dataclass
 class Config:
-    # --- data ---
-    data_dir: str = "./data"
-    num_workers: int = 2
-    batch_size: int = 64
+    # --- server ---
+    host: str = "0.0.0.0"
+    port: int = 8000
+    base_url: str = "http://localhost:8000"
 
-    # --- model ---
-    num_classes: int = 10
-    dropout: float = 0.25
+    # --- NLP / intent classifier ---
+    model_path: str = "./data/intent_model.json"
+    training_data_path: str = "./data/training_data.json"
+    confidence_threshold: float = 0.40
 
-    # --- training ---
-    epochs: int = 20
-    learning_rate: float = 1e-3
-    weight_decay: float = 1e-4
-    lr_step_size: int = 7
-    lr_gamma: float = 0.1
+    # --- IVR ---
+    call_flow_path: str = "./data/call_flow.json"
+    default_language: str = "es"
+    max_retries: int = 3
+    input_timeout: int = 5
+    speech_timeout: str = "auto"
 
-    # --- checkpoints ---
-    checkpoint_dir: str = "./checkpoints"
-    save_every: int = 5
+    # --- TTS ---
+    tts_voice: str = "Polly.Mia"
+    tts_language: str = "es-MX"
 
-    # --- CIFAR-10 class names ---
-    class_names: List[str] = field(default_factory=lambda: [
-        "airplane", "automobile", "bird", "cat", "deer",
-        "dog", "frog", "horse", "ship", "truck",
-    ])
+    @classmethod
+    def from_json(cls, path: str) -> Config:
+        data = json.loads(Path(path).read_text())
+        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+
+    def to_json(self, path: str) -> None:
+        from dataclasses import asdict
+        Path(path).write_text(json.dumps(asdict(self), indent=2, ensure_ascii=False))

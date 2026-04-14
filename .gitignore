@@ -3,18 +3,12 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-.eggs/
-*.egg
-
-data/
-checkpoints/
 
 .venv/
 venv/
 env/
 
-*.pt
-*.pth
+data/intent_model.json
 
 .DS_Store
 Thumbs.db

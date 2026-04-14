@@ -1,0 +1,256 @@
+{
+  "name": "Danooc Call Center",
+  "welcome_message": "Bienvenido a Danooc. Gracias por llamarnos.",
+  "root_node": "main_menu",
+  "nodes": [
+    {
+      "id": "main_menu",
+      "node_type": "menu",
+      "prompt": "Por favor seleccione una de las siguientes opciones:",
+      "options": [
+        {
+          "digit": "1",
+          "label": "ventas",
+          "next_node": "ventas_menu",
+          "intents": ["ventas"]
+        },
+        {
+          "digit": "2",
+          "label": "soporte técnico",
+          "next_node": "soporte_menu",
+          "intents": ["soporte"]
+        },
+        {
+          "digit": "3",
+          "label": "facturación y pagos",
+          "next_node": "facturacion_menu",
+          "intents": ["facturacion"]
+        },
+        {
+          "digit": "4",
+          "label": "cancelaciones",
+          "next_node": "cancelacion_confirm",
+          "intents": ["cancelacion"]
+        },
+        {
+          "digit": "5",
+          "label": "horarios de atención",
+          "next_node": "horarios_info",
+          "intents": ["horarios"]
+        },
+        {
+          "digit": "0",
+          "label": "hablar con un agente",
+          "next_node": "transfer_agent",
+          "intents": ["agente"]
+        }
+      ],
+      "no_input_prompt": "No escuché su respuesta. Por favor intente de nuevo.",
+      "invalid_prompt": "Opción no válida. Por favor intente de nuevo.",
+      "max_retries": 3
+    },
+    {
+      "id": "ventas_menu",
+      "node_type": "menu",
+      "prompt": "Ha seleccionado ventas.",
+      "options": [
+        {
+          "digit": "1",
+          "label": "información de productos",
+          "next_node": "ventas_productos",
+          "intents": []
+        },
+        {
+          "digit": "2",
+          "label": "solicitar una cotización",
+          "next_node": "ventas_cotizacion",
+          "intents": []
+        },
+        {
+          "digit": "0",
+          "label": "hablar con un asesor de ventas",
+          "next_node": "transfer_ventas",
+          "intents": ["agente"]
+        }
+      ],
+      "no_input_prompt": "No escuché su selección.",
+      "invalid_prompt": "Opción no válida.",
+      "max_retries": 3
+    },
+    {
+      "id": "ventas_productos",
+      "node_type": "action",
+      "prompt": "Nuestros productos incluyen servicios de hosting, desarrollo web y marketing digital. Para más información, visite nuestra página web o presione cero para hablar con un asesor.",
+      "action": "hangup",
+      "action_target": ""
+    },
+    {
+      "id": "ventas_cotizacion",
+      "node_type": "action",
+      "prompt": "Para solicitar una cotización, por favor deje su mensaje después del tono con su nombre, empresa y los servicios que le interesan. Le responderemos a la brevedad.",
+      "action": "voicemail",
+      "action_target": ""
+    },
+    {
+      "id": "transfer_ventas",
+      "node_type": "action",
+      "prompt": "Transfiriendo su llamada a un asesor de ventas. Por favor espere un momento.",
+      "action": "transfer",
+      "action_target": "+15551234001"
+    },
+    {
+      "id": "soporte_menu",
+      "node_type": "menu",
+      "prompt": "Ha seleccionado soporte técnico.",
+      "options": [
+        {
+          "digit": "1",
+          "label": "reportar una falla",
+          "next_node": "soporte_falla",
+          "intents": []
+        },
+        {
+          "digit": "2",
+          "label": "consultar el estado de un ticket",
+          "next_node": "soporte_ticket",
+          "intents": []
+        },
+        {
+          "digit": "0",
+          "label": "hablar con un técnico",
+          "next_node": "transfer_soporte",
+          "intents": ["agente"]
+        }
+      ],
+      "no_input_prompt": "No escuché su selección.",
+      "invalid_prompt": "Opción no válida.",
+      "max_retries": 3
+    },
+    {
+      "id": "soporte_falla",
+      "node_type": "action",
+      "prompt": "Para reportar una falla, por favor deje su mensaje después del tono describiendo el problema. Incluya su nombre y número de cuenta.",
+      "action": "voicemail",
+      "action_target": ""
+    },
+    {
+      "id": "soporte_ticket",
+      "node_type": "action",
+      "prompt": "Para consultar el estado de un ticket existente, será transferido con un agente de soporte.",
+      "action": "transfer",
+      "action_target": "+15551234002"
+    },
+    {
+      "id": "transfer_soporte",
+      "node_type": "action",
+      "prompt": "Transfiriendo su llamada a soporte técnico. Por favor espere.",
+      "action": "transfer",
+      "action_target": "+15551234002"
+    },
+    {
+      "id": "facturacion_menu",
+      "node_type": "menu",
+      "prompt": "Ha seleccionado facturación y pagos.",
+      "options": [
+        {
+          "digit": "1",
+          "label": "consultar su saldo",
+          "next_node": "facturacion_saldo",
+          "intents": []
+        },
+        {
+          "digit": "2",
+          "label": "solicitar una factura",
+          "next_node": "facturacion_factura",
+          "intents": []
+        },
+        {
+          "digit": "0",
+          "label": "hablar con un agente de facturación",
+          "next_node": "transfer_facturacion",
+          "intents": ["agente"]
+        }
+      ],
+      "no_input_prompt": "No escuché su selección.",
+      "invalid_prompt": "Opción no válida.",
+      "max_retries": 3
+    },
+    {
+      "id": "facturacion_saldo",
+      "node_type": "action",
+      "prompt": "Para consultar su saldo, será transferido a nuestro sistema automatizado.",
+      "action": "transfer",
+      "action_target": "+15551234003"
+    },
+    {
+      "id": "facturacion_factura",
+      "node_type": "action",
+      "prompt": "Para solicitar su factura, por favor envíe sus datos fiscales a facturacion@danooc.com o será transferido a un agente.",
+      "action": "transfer",
+      "action_target": "+15551234003"
+    },
+    {
+      "id": "transfer_facturacion",
+      "node_type": "action",
+      "prompt": "Transfiriendo su llamada al departamento de facturación. Por favor espere.",
+      "action": "transfer",
+      "action_target": "+15551234003"
+    },
+    {
+      "id": "cancelacion_confirm",
+      "node_type": "menu",
+      "prompt": "Ha seleccionado cancelaciones. Lamentamos que desee cancelar. Antes de continuar, un agente de retención le puede ofrecer mejores opciones.",
+      "options": [
+        {
+          "digit": "1",
+          "label": "hablar con un agente de retención",
+          "next_node": "transfer_retencion",
+          "intents": ["agente"]
+        },
+        {
+          "digit": "2",
+          "label": "continuar con la cancelación",
+          "next_node": "transfer_cancelacion",
+          "intents": ["cancelacion"]
+        },
+        {
+          "digit": "9",
+          "label": "volver al menú principal",
+          "next_node": "main_menu",
+          "intents": []
+        }
+      ],
+      "no_input_prompt": "No escuché su selección.",
+      "invalid_prompt": "Opción no válida.",
+      "max_retries": 3
+    },
+    {
+      "id": "transfer_retencion",
+      "node_type": "action",
+      "prompt": "Transfiriendo su llamada a un agente de retención. Por favor espere.",
+      "action": "transfer",
+      "action_target": "+15551234004"
+    },
+    {
+      "id": "transfer_cancelacion",
+      "node_type": "action",
+      "prompt": "Será transferido al departamento de cancelaciones. Por favor espere.",
+      "action": "transfer",
+      "action_target": "+15551234004"
+    },
+    {
+      "id": "horarios_info",
+      "node_type": "action",
+      "prompt": "Nuestro horario de atención es de lunes a viernes de 8 de la mañana a 8 de la noche, y sábados de 9 de la mañana a 2 de la tarde. Gracias por llamar a Danooc. Hasta luego.",
+      "action": "hangup",
+      "action_target": ""
+    },
+    {
+      "id": "transfer_agent",
+      "node_type": "action",
+      "prompt": "Transfiriendo su llamada a un agente. Por favor espere en la línea.",
+      "action": "transfer",
+      "action_target": "+15551234000"
+    }
+  ]
+}
