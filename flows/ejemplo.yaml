@@ -1,0 +1,28 @@
+# Flujo de ejemplo: peticiones HTTP y comprobaciones básicas.
+# Variables de entorno: usa ${VAR_NAME} en url, headers o body.
+
+name: ejemplo_api_publica
+description: Consulta pública sin autenticación (demo).
+
+defaults:
+  timeout_seconds: 30
+
+steps:
+  - id: health_jsonplaceholder
+    name: Obtener un post de ejemplo
+    request:
+      method: GET
+      url: https://jsonplaceholder.typicode.com/posts/1
+    expect:
+      status: [200]
+    capture:
+      # Rutas sobre el JSON de la respuesta (no uses prefijo "body.")
+      userId: userId
+
+  - id: second_request
+    name: Lista de posts del mismo usuario
+    request:
+      method: GET
+      url: https://jsonplaceholder.typicode.com/posts?userId=${userId}
+    expect:
+      status: [200]
